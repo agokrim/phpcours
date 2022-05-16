@@ -1,14 +1,21 @@
 <?php 
 require_once "class/Message.php";
+require_once "class/GestBook.php";
 $errors =null;
+$success =false;
+
 if (isset($_POST['username'] , $_POST['message']) ){
   $message= new Message($_POST['username'], $_POST['message']);
 
   
 
-  if (!$message->isValid()){
+  if ($message->isValid()){
+    $gestbook= new GestBook(__DIR__.DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.'message');
+ 
+    $gestbook->addMessage($message);
+    $success = true;
+  }else{
     $errors  = $message->geterrors();
-
   }
 
 }
@@ -21,12 +28,16 @@ require "elements/header.php";
 
 <h2>Gest Book </h2>
 
-<pre>  <?php var_dump($message->geterrors()) ?>  </pre>
-<pre>  <?php var_dump($errors) ?>  </pre>
 
   <?php if (!empty($errors)):?>
     <div class="alert alert-danger">
       Formulaire invalid
+    </div>
+  <?php  endif?>
+
+  <?php if ($success):?>
+    <div class="alert alert-success">
+      Merci pour votre message
     </div>
   <?php  endif?>
 
@@ -35,7 +46,7 @@ require "elements/header.php";
 <form action="" method="POST">
   <div class="form-group">
     <label for=" username">Pseudo:</label><br>
-    <input type="text" id="username" name="username" class="form-control <?= isset($errors['username'])? 'is-invalid':''?>"" />
+    <input type="text" id="username" name="username" value="<?= htmlentities( $_POST['username']??'')?>" class="form-control <?= isset($errors['username'])? 'is-invalid':''?>" />
     <?php if(isset($errors['username'])):?>
       <div class="invalid-feedback">
         <?= $errors['username']?>
@@ -44,7 +55,7 @@ require "elements/header.php";
   </div>
   <div class="form-group">
     <label for="message">Message:</label><br>
-    <textarea rows="4  id="message" name="message" class="form-control <?= isset($errors['message'])? 'is-invalid':''?>"></textarea>
+    <textarea rows="4  id="message" name="message"   class="form-control <?= isset($errors['message'])? 'is-invalid':''?>"><?= htmlentities($_POST['message']??'')?></textarea>
   
     <?php if(isset($errors['message'])):?>
       <div class="invalid-feedback">

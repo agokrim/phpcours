@@ -4,13 +4,16 @@ class Message{
     const LIMIT_USERNAME = 3;
     const LIMIT_MESSAGE = 10;
     private $username;
-    private $message;   
+    private $message;
+    private $date;    
     
 
     public function __construct(string $username, string $message, ?DateTime $date=null)
     {
         $this->username = $username;
         $this->message = $message;
+        $this->date = $date??new DateTime();
+
 
     }
 
@@ -37,18 +40,23 @@ class Message{
 
         return  $errors ;
     }
-/*
-    public function toHtml():string
+
+    public function toHtml(): string
     {
+        return '';
+    }
+
+    public function toJSON(): string
+    {
+        return json_encode([
+            'username'=>$this->username,
+            'message'=>$this->message,
+            'date' => $this->date->getTimestamp()
+        ]);
 
     }
 
-    public function toJSON():string
-    {
-
-    }
-
-    public function message():Message
+   /* public function message():Message
     {
 
     }    */
