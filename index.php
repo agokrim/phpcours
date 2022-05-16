@@ -7,18 +7,22 @@ $success =false;
 if (isset($_POST['username'] , $_POST['message']) ){
   $message= new Message($_POST['username'], $_POST['message']);
 
-  
+  $gestbook= new GestBook(__DIR__.DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.'message');
 
   if ($message->isValid()){
-    $gestbook= new GestBook(__DIR__.DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.'message');
+   
  
     $gestbook->addMessage($message);
     $success = true;
+    $_POST =[];
   }else{
     $errors  = $message->geterrors();
   }
 
 }
+
+$messages = $gestbook->getMessage();
+
 $title="Home";
 require "elements/header.php";
 ?>
@@ -68,7 +72,13 @@ require "elements/header.php";
 </form> 
 
 <h2>Messages </h2>
-<p>If you click the "Submit" button, the form-data will be sent to a page called "/action_page.php".</p>
+<hr>
+<?php  
+  foreach($messages as $message):
+    
+   echo($message->toHtml());
+  endforeach;
+?>
 </div>
 <?php 
 require "elements/footer.php";

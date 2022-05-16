@@ -17,6 +17,15 @@ class Message{
 
     }
 
+    public static function fromJSON(string $json): Message
+    {
+        $data= json_decode($json,true);
+          
+        return new self ($data['username'],$data['message'],new DateTime("@".$data['date']));
+
+    }
+
+
     public function isValid(): bool
     {
        
@@ -42,8 +51,17 @@ class Message{
     }
 
     public function toHtml(): string
-    {
-        return '';
+    { 
+        $this->date->setTimezone(new DatetimeZone('Europe/Paris'));
+        $username = htmlentities($this->username);
+        $message = htmlentities($this->message);
+        $date = $this->date->format('d/m/Y à H:i');
+        return <<<HTML
+        <div>
+            <p><strong>{$username}</strong>-<span><span>{$date} </p>
+            <blockquote>{$message}</blockquote>
+        </div>
+        HTML;
     }
 
     public function toJSON(): string
@@ -56,6 +74,7 @@ class Message{
 
     }
 
+ 
    /* public function message():Message
     {
 
