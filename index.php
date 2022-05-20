@@ -19,9 +19,11 @@ if (isset($_POST['username'] , $_POST['message']) ){
     $errors  = $message->geterrors();
   }
 
+  $messages = $gestbook->getMessage();
+
 }
 
-$messages = $gestbook->getMessage();
+
 
 $title="Home";
 require "elements/header.php";
@@ -73,11 +75,15 @@ require "elements/header.php";
 
 <h2>Messages </h2>
 <hr>
-<?php  
+<?php
+if(isset($message)){
+
+ 
   foreach($messages as $message):
     
    echo($message->toHtml());
   endforeach;
+} 
 ?>
 </div>
 <?php 
