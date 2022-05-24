@@ -73,7 +73,7 @@ require "elements/header.php";
   <input type="submit" value="Submit" class="btn btn-primary"/>
 </form> 
 
-<h2>Messages </h2>
+<h2>Messages abdou </h2>
 <hr>
 <?php
 if(isset($message)){
