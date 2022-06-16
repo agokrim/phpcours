@@ -1,91 +1,125 @@
-<?php 
-require_once "class/Message.php";
-require_once "class/GestBook.php";
-$errors =null;
-$success =false;
+<?php
+require 'vendor/autoload.php';
+require 'src/URLHelper.php';
 
-if (isset($_POST['username'] , $_POST['message']) ){
-  $message= new Message($_POST['username'], $_POST['message']);
+use App\URLHelper;
 
-  $gestbook= new GestBook(__DIR__.DIRECTORY_SEPARATOR.'data'.DIRECTORY_SEPARATOR.'message');
+define('PER_PAGE', 10);
+$pdo = new PDO(
+  "sqlite:./sqliteData/chinook.db",
+  null,
+  null,
+  [
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+  ]
+);
+$query = "SELECT * FROM customers ";
+$querycount = "SELECT count(CustomerId) as count FROM customers ";
+$params = [];
 
-  if ($message->isValid()){
-   
- 
-    $gestbook->addMessage($message);
-    $success = true;
-    $_POST =[];
-  }else{
-    $errors  = $message->geterrors();
-  }
+$page = (int)($_GET['p'] ?? 1);
+$offset = ($page - 1) * PER_PAGE;
 
-  $messages = $gestbook->getMessage();
-
+if (!empty($_GET['q'])) {
+  $query .= "WHERE Country like :Country";
+  $querycount .= "WHERE Country like :Country";
+  $params['Country'] = '%' . $_GET['q'] . '%';
 }
+$query .= " LIMIT " . PER_PAGE . " OFFSET " . $offset;
+
+$statmentcount = $pdo->prepare($querycount);
+$statmentcount->execute($params);
+$statmentcount->execute();
+$count = (int)$statmentcount->fetch()['count'];
+
+$statment = $pdo->prepare($query);
+$statment->execute($params);
+$customers = $statment->fetchAll();
+
+$nbpages = ceil($count / PER_PAGE);
+//dd($nbpages);
 
 
 
-$title="Home";
+
+$title = "Home";
 require "elements/header.php";
 ?>
 
 <div class="container">
 
 
-<h2>Gest Book </h2>
-
-
-  <?php if (!empty($errors)):?>
-    <div class="alert alert-danger">
-      Formulaire invalid
+  <h2>Gest Book </h2>
+  <form action="">
+    <div class="form-group">
+      <input type="search" class="form-control" value="<?= htmlentities($_GET['q'] ?? '') ?>" name="q" placeholder="Recherche..." />
     </div>
-  <?php  endif?>
-
-  <?php if ($success):?>
-    <div class="alert alert-success">
-      Merci pour votre message
+    <div class="form-group">
+      <button class="btn btn-primary">
+        Recherche
+      </button>
     </div>
-  <?php  endif?>
+
+
+  </form>
 
 
 
-<form action="" method="POST">
-  <div class="form-group">
-    <label for=" username">Pseudo:</label><br>
-    <input type="text" id="username" name="username" value="<?= htmlentities( $_POST['username']??'')?>" class="form-control <?= isset($errors['username'])? 'is-invalid':''?>" />
-    <?php if(isset($errors['username'])):?>
-      <div class="invalid-feedback">
-        <?= $errors['username']?>
-      </div>
-    <?php endif ?>
-  </div>
-  <div class="form-group">
-    <label for="message">Message:</label><br>
-    <textarea rows="4  id="message" name="message"   class="form-control <?= isset($errors['message'])? 'is-invalid':''?>"><?= htmlentities($_POST['message']??'')?></textarea>
-  
-    <?php if(isset($errors['message'])):?>
-      <div class="invalid-feedback">
-        <?= $errors['message']?>
-      </div>
-    <?php endif ?>
-  </div>
-  
-  <input type="submit" value="Submit" class="btn btn-primary"/>
-</form> 
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">FirstName</th>
+        <th scope="col">LastName</th>
+        <th scope="col">Country</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <?php foreach ($customers as $customer) : ?>
+          <th scope="row"><?= $customer['CustomerId'] ?></th>
+          <td><?= $customer['FirstName'] ?></td>
+          <td><?= $customer['LastName'] ?></td>
+          <td><?= $customer['Country'] ?></td>
+      </tr>
+    <?php endforeach ?>
+    </tbody>
+  </table>
+  <?php if ($nbpages > 1 && $page < $nbpages) :   ?>
+    <a href=".?<?= URLHelper::withParam("p", ($page + 1)) ?>">Page suivante</a>
 
-<h2>Messages abdou </h2>
-<hr>
-<?php
-if(isset($message)){
+  <?php endif  ?>
 
- 
-  foreach($messages as $message):
-    
-   echo($message->toHtml());
-  endforeach;
-} 
-?>
+
+  <?php if ($nbpages > 1 && $page < $nbpages) : ?>
+
+    <?php for ($i = 1; $i <= $nbpages; $i++) : ?>
+      <?php if ($page === $i) : ?>
+        <?= $i ?>
+
+
+      <?php else :   ?>
+        <a href=".?<?= URLHelper::withParam("p", ($i)) ?>"><?= $i ?></a>
+
+      <?php endif  ?>
+
+    <?php endfor ?>
+
+
+  <?php endif  ?>
+
+
+  <?php // if ($nbpages > 1 && $page > 1 ) :   
+  ?>
+  <?php if ($page > 1 && $page <= $nbpages) :   ?>
+    <a href=".?<?= URLHelper::withParam("p", ($page - 1)) ?>">Page précedente</a>
+
+  <?php endif  ?>
+
+
+
 </div>
-<?php 
+<?php
 require "elements/footer.php";
 ?>
